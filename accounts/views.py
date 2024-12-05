@@ -10,6 +10,7 @@ from accounts.models import (User, VerificationCode)
 from accounts.serializers import CustomTokenObtainPairSerializer
 from accounts.permissions import BaseAuthPermission
 from djoser.compat import get_user_email
+from djoser import signals
 
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from djoser.conf import settings as djoser_settings
@@ -174,16 +175,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = serializer.save()
-        # signals.user_registered.send(
-        #     sender=self.__class__, user=user, request=self.request
-        # )
-        verification_save = VerificationCode.objects.create(
-            label=VerificationCode.SIGNUP, code=random_with_N_digits(4), user=user, email=user.email
+        signals.user_registered.send(
+            sender=self.__class__, user=user, request=self.request
         )
-        # custom signal for sending email to signup verifiy code
-        # verification_email_signal.send(
-        #     sender=self.__class__, instance=verification_save.id, created=True, request=self.request)
-
         context = {"user": user}
         to = [get_user_email(user)]
         if djoser_settings.SEND_ACTIVATION_EMAIL:

@@ -15,7 +15,7 @@ def send_email(full_name,code,body,rec):
             "verify_code": code,
             "message":body,
         }
-    html_content = render_to_string("new_user.html", context)
+    html_content = render_to_string("welcome_email.html", context)
     text_content = strip_tags(html_content)
     email = EmailMultiAlternatives(
         "Reset Account verification code",

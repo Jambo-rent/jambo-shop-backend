@@ -39,7 +39,10 @@ class UserCreationSerializer(UserCreateSerializer):
                 {"email": "user with this email address already exists."}
             )
         return attrs
-
+    
+    def create(self, validated_data):
+        
+        return super().create(validated_data)
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())

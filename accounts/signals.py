@@ -21,7 +21,9 @@ def create_profile(sender, user, request, **kwargs):
     if not user.admin:
         ProfilePicture.objects.get_or_create(user=user)
         UserAddress.objects.get_or_create(user=user)
-        VerificationCode.objects.create(user=user,label=VerificationCode.SIGNUP)
+        code_ins=VerificationCode.objects.create(user=user,label=VerificationCode.SIGNUP,email=user.email)
+          # custom signal for sending email to signup verifiy code
+        created_update_email_verification_task(code_ins.id,True)
 
 @receiver(pre_save, sender=VerificationCode)
 def delete_all_expired_verification_code(sender, instance, **kwargs):
@@ -32,6 +34,3 @@ def delete_all_expired_verification_code(sender, instance, **kwargs):
 def created_update_EmailVerification(sender, instance, created, request, **kwargs):
     return created_update_email_verification_task.delay(instance, created)
 
-@receiver(verification_email_signal)  # sending email verification code signals
-def created_update_EmailVerification(sender, instance, created, request, **kwargs):
-    return created_update_email_verification_task.delay(instance, created)

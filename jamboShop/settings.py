@@ -221,3 +221,10 @@ class ObjDict(dict):
 
 ACCOUNT_CONSTANTS = ObjDict({"messages": "accounts.constants.Messages"})
 CORS_ORIGIN_ALLOW_ALL = True
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST_USER ="florberthabimana@gmail.com"
+EMAIL_HOST_PASSWORD = "poxtdqxquiioomvy"
+EMAIL_PORT =587
+EMAIL_USE_TLS = True
