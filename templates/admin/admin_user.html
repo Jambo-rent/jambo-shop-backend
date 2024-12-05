@@ -1,0 +1,29 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+{% load static%}
+<div>
+    <center><h2><b> <span id="greeting"></span> Murakaza neza kuri Rwanda Health Worker Admin Portal</b></h2></center>
+   <center> <img src="{% static 'images/logo.png' %}" /></center>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the current hour
+        var currentHour = new Date().getHours();
+
+        // Get the greeting based on the time of day
+        var greeting;
+        if (currentHour >= 5 && currentHour < 12) {
+            greeting = 'Mwaramutse neza ! ';
+        } else if (currentHour >= 12 && currentHour < 18) {
+            greeting = 'Mwiriwe neza ! ';
+        } else {
+            greeting = 'Umugoroba mwiza !';
+        }
+
+        // Update the greeting in the HTML
+        document.getElementById('greeting').textContent = greeting ,' ! ';
+    });
+</script>
+{% endblock %}

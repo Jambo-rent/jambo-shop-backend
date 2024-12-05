@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = {version = "*", extras = ["gis"]}
+djoser = "*"
+djangorestframework = "*"
+python-dateutil = "*"
+pillow = "*"
+psycopg2-binary = "*"
+ipython = "*"
+django-cors-headers = "*"
+
+[requires]
+python_version = "3.9"
+
+[dev-packages]
