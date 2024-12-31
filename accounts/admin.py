@@ -15,7 +15,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from accounts.forms import UserAdminChangeForm, UserAdminCreationForm
 from django.contrib.gis.admin import OSMGeoAdmin
 
-from accounts.models import District, ProfilePicture, Province, Sector, UserAddress, VerificationCode, Village
+from accounts.models import District, Province, Sector, UserAddress, VerificationCode, Village
 # Register your models here.
 
 admin.site.unregister(Group)
@@ -44,6 +44,8 @@ class UserAdmin(OSMGeoAdmin, BaseUserAdmin, admin.ModelAdmin,):
         "last_name",
         "user_type",
         "admin",
+        "profile_image",
+        "is_active",
         "created_on",
     )
     list_filter = (
@@ -65,6 +67,7 @@ class UserAdmin(OSMGeoAdmin, BaseUserAdmin, admin.ModelAdmin,):
                     "first_name",
                     "last_name",
                     "phone_number",
+                    "profile_image",
                     "user_type",
                     "admin"
                
@@ -246,8 +249,6 @@ class UserAdmin(OSMGeoAdmin, BaseUserAdmin, admin.ModelAdmin,):
 
 admin.site.register(User, UserAdmin)
 admin.site.register(VerificationCode)
-admin.site.register(ProfilePicture)
-
 
 
 class DistrictTabularInline(admin.StackedInline):

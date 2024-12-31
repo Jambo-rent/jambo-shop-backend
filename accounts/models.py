@@ -1,6 +1,6 @@
-from datetime import timezone
+from datetime import datetime, timezone
 import uuid
-import os
+
 from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.contrib.gis.db import models
@@ -79,6 +79,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             MaxLengthValidator(limit_value=13)
         ]
     )
+    profile_image = models.ImageField(
+        upload_to="cooperative_logo",default="default_image/default.png")
     date_of_birth = models.DateField(blank=True, null=True)
     user_type = models.CharField(
         _("user type"), choices=USER_TYPE_CHOICE, max_length=50, default=USER
@@ -86,14 +88,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(_("is active"), default=False)
     # admin user; non super-user
     is_staff = models.BooleanField(_("staff"), default=False)
-    is_first_login = models.BooleanField(_("staff"), default=True)
-
+    last_login = models.DateTimeField(_("last login on"), auto_now_add=False,null=True,blank=True)
+    is_phone_visible = models.BooleanField(_("visible"), default=False)
+    
     admin = models.BooleanField(_("admin"), default=False)  # a admin
     created_on = models.DateTimeField(_("created on"), auto_now_add=True)
     objects = UserManager()
     USERNAME_FIELD = _("username")
-    REQUIRED_FIELDS = ["email","first_name","last_name"]
-
+    REQUIRED_FIELDS = ["phone_number",]
+    
     def get_full_name(self):
         # The user is identified by their address
         return self.first_name+' '+self.last_name
@@ -155,7 +158,7 @@ class District(models.Model):
     name=models.CharField(max_length=50)
     province=models.ForeignKey(Province,on_delete=models.CASCADE,related_name='province')
 
-
+    
     class Meta:
         verbose_name = _("District")
         verbose_name_plural = _("Districts")
@@ -163,7 +166,7 @@ class District(models.Model):
 
     def __str__(self):
             return self.name
-
+    
     def get_absolute_url(self):
         return reverse("district_detail", kwargs={"pk": self.pk})
 
@@ -172,7 +175,7 @@ class District(models.Model):
 class Sector(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     name=models.CharField(max_length=50)
-    district=models.ForeignKey(District,on_delete=models.CASCADE,related_name='province_sector')
+    district=models.ForeignKey(District,on_delete=models.CASCADE,related_name='district')
 
 
     class Meta:
@@ -190,7 +193,7 @@ class Sector(models.Model):
 class Village(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     name=models.CharField(max_length=50)
-    sector=models.ForeignKey(Sector,on_delete=models.CASCADE,related_name='village')
+    sector=models.ForeignKey(Sector,on_delete=models.CASCADE,related_name='sector')
 
 
     class Meta:
@@ -207,7 +210,7 @@ class Village(models.Model):
 
 
 class UserAddress(models.Model):
-    user=models.OneToOneField(User,related_name='user_address',on_delete=models.CASCADE)
+    user=models.OneToOneField(User,related_name='user_location',on_delete=models.CASCADE)
     village=models.ForeignKey(Village,on_delete=models.SET_NULL,related_name='user_village', blank=True, null=True)
     lng = models.FloatField(blank=True, null=True)
     lat = models.FloatField(blank=True, null=True)
@@ -221,50 +224,6 @@ class UserAddress(models.Model):
 
     def get_absolute_url(self):
         return reverse("user_address_detail", kwargs={"pk": self.pk})
-
-
-class ProfilePicture(models.Model):
-    def get_original_image_upload_path(instance, filename):
-        return os.path.join(
-            "Profiles/user_%s/original_quality" % instance.user.username,
-            filename,
-        )
-
-    def get_medium_quality_upload_path(instance, filename):
-        return os.path.join(
-            "Profiles/user_%s/medium_quality" % instance.user.username,
-            filename,
-        )
-
-    def get_low_quality_upload_path(instance, filename):
-        return os.path.join(
-            "Profiles/user_%s/low_quality" % instance.user.username, filename
-        )
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
-    user = models.OneToOneField(
-        User, related_name="user_profile_images", on_delete=models.CASCADE
-    )
-
-    high_res = models.ImageField(upload_to=get_original_image_upload_path)
-    medium_res = models.ImageField(
-        upload_to=get_medium_quality_upload_path, blank=True, null=True)
-    low_res = models.ImageField(
-        upload_to=get_low_quality_upload_path, blank=True, null=True)
-
-    class Meta:
-        verbose_name = _("Profile Picture")
-        verbose_name_plural = _("Profile Pictures")
-
-    def image_tag(self):
-        return format_html('<img src="{}" width="300" height="300"/>'.format(self.high_res.url))
-    image_tag.short_description = 'Image preview'
-    image_tag.allow_tags = True
-    
-    def __str__(self):
-        return self.user.username
-
-    def get_absolute_url(self):
-        return reverse("ProfilePicture_detail", kwargs={"pk": self.pk})
 
 
 
@@ -288,15 +247,15 @@ class VerificationCode(models.Model):
         max_length=255, choices=VERIFICATION_CODE_CHOICES, default=CHANGE_EMAIL)
     email = models.EmailField(max_length=255, blank=True, null=True)
     created_on = models.DateTimeField(auto_now_add=True)
-
+    
     class Meta:
         unique_together = ('code', 'user')
     
-
+    
     @property
     def valid(self):
         future_time = self.created_on + settings.VERIFICATION_CODE_LIFETIME
-        return timezone.now() < future_time
-
+        return datetime.now(timezone.utc) < future_time
+    
     def get_absolute_url(self):
         return reverse("favorite_detail", kwargs={"pk": self.pk})
