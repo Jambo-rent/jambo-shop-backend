@@ -9,7 +9,7 @@ from accounts.tasks import created_update_email_verification_task
 from utils.generator_code import random_with_N_digits
 from utils.send_email import send_email
 
-from accounts.models import ProfilePicture, UserAddress, VerificationCode
+from accounts.models import UserAddress, VerificationCode
 
 
 # email verification
@@ -19,7 +19,6 @@ verification_email_signal = Signal()
 @receiver(user_registered)
 def create_profile(sender, user, request, **kwargs):
     if not user.admin:
-        ProfilePicture.objects.get_or_create(user=user)
         UserAddress.objects.get_or_create(user=user)
         code_ins=VerificationCode.objects.create(user=user,label=VerificationCode.SIGNUP,email=user.email)
           # custom signal for sending email to signup verifiy code
@@ -32,5 +31,5 @@ def delete_all_expired_verification_code(sender, instance, **kwargs):
 
 @receiver(verification_email_signal)  # sending email verification code signals
 def created_update_EmailVerification(sender, instance, created, request, **kwargs):
-    return created_update_email_verification_task.delay(instance, created)
+    return created_update_email_verification_task(instance, created)
 

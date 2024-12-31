@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'djoser',
     'corsheaders',
+    'shops',
+    'subscriptions',
 ]
 
 MIDDLEWARE = [
@@ -42,7 +44,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -107,7 +109,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',  # For JWT-based auth
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        # 'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
 }
 
@@ -152,8 +155,9 @@ DJOSER = {
         'activation': 'core.email.ActivationEmail'
     },
     'SERIALIZERS': {
-        'activation': 'djoser.serializers.ActivationSerializer',
-        'password_reset': 'djoser.serializers.SendEmailResetSerializer',
+        'activation': 'accounts.serializers.ActivationSerializer',
+        'resend_activation':'accounts.serializers.ResendOTPSerializer',
+        'password_reset': 'accounts.serializers.SetNewPasswordSerializer',
         'password_reset_confirm': 'accounts.serializers.ResetPasswordConfirm',
         'password_reset_confirm_retype': 'djoser.serializers.PasswordResetConfirmRetypeSerializer',
         'set_password': 'djoser.serializers.SetPasswordSerializer',
@@ -168,7 +172,8 @@ DJOSER = {
         'user_delete': 'djoser.serializers.UserDeleteSerializer',
         'user': 'accounts.serializers.UserAccountSerializer',
         'current_user': 'accounts.serializers.UserAccountSerializer',
-        # 'token': 'accounts.serializers.CustomTokenObtainPairSerializer',
+        'set_email': 'accounts.serializers.SetNewEmailSerializer',
+        'edit_user_profile':'accounts.serializers.ProfilePictureSerializer'
         # 'token_create': 'accounts.serializers.CustomTokenObtainPairSerializer',
     },
     'PERMISSIONS': {
@@ -182,7 +187,7 @@ DJOSER = {
         'user_create': ['rest_framework.permissions.AllowAny'],
         'user_delete': ['djoser.permissions.CurrentUserOrAdmin'],
         'user': ['accounts.permissions.BaseAuthPermission'],
-        # 'user_list': ['accounts.permissions.BaseAuthPermission'],
+        # 'set': ['accounts.permissions.BaseAuthPermission'],
         'token_create': ['rest_framework.permissions.AllowAny'],
         'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
     }
@@ -197,10 +202,10 @@ LANGUAGES = [
     ('fr', _('Français')),
 ]
 CODE_EXPIRE_MIN=5
+DISTANCE_KM=7
 VERIFICATION_CODE_LIFETIME=timedelta(minutes=CODE_EXPIRE_MIN)
 VERIFICATION_CODE_LENGTH = 6
-
-
+MONTHLY_DAY=30
 
 
 class ObjDict(dict):
@@ -220,11 +225,16 @@ class ObjDict(dict):
 
 
 ACCOUNT_CONSTANTS = ObjDict({"messages": "accounts.constants.Messages"})
-CORS_ORIGIN_ALLOW_ALL = True
 
+CORS_ORIGIN_ALLOW_ALL = True
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_HOST_USER ="florberthabimana@gmail.com"
 EMAIL_HOST_PASSWORD = "poxtdqxquiioomvy"
 EMAIL_PORT =587
 EMAIL_USE_TLS = True
+
+
+MEDIA_URL='/media/'
+MEDIA_ROOT=os.path.join(BASE_DIR,'media')
+LOGIN_FIELD="username"
